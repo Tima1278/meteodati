@@ -1,5 +1,6 @@
 <template>
     <div>
+      <input type="date" v-model="selectedDate" @input="updateChartData" :disabledDates="disabledDates">
       <apexchart v-if="chartData && chartData.series && chartData.series.length > 0" type="line" :options="chartOptions" :series="chartData.series"></apexchart>
     </div>
   </template>
@@ -22,7 +23,9 @@
             categories: []
           }
         },
-        chartData: null
+        chartData: null,
+        selectedDate: null,
+        availableDates: [] // New data to store available dates
       };
     },
     mounted() {
@@ -47,23 +50,39 @@
       processData(data) {
         // Check if data is valid and has the correct structure
         if (data.length > 1) {
-          const categories = data.slice(1).map(row => row[0]);
-          const seriesData = data.slice(1).map(row => row[1]);
+          const dates = data.slice(1).map(row => row[0]); // Date column
+          const temperatures = data.slice(1).map(row => parseFloat(row[1])); // Temperature column
   
-          // Remove any undefined values
-          const filteredCategories = categories.filter(item => item !== undefined);
-          const filteredSeriesData = seriesData.filter(item => item !== undefined);
+          // Filter temperatures less than 60
+          const filteredTemperatures = temperatures.filter(temp => temp < 60);
   
-          this.chartOptions.xaxis.categories = filteredCategories;
+          this.availableDates = dates; // Store available dates
+          this.chartOptions.xaxis.categories = dates;
           this.chartData = {
             series: [{
-              name: 'Serie 1',
-              data: filteredSeriesData
+              name: 'Temperature',
+              data: filteredTemperatures
             }]
           };
         } else {
           console.error("Invalid data format in Excel file");
         }
+      },
+      updateChartData() {
+        if (this.selectedDate && this.chartData) {
+          const selectedDataIndex = this.chartOptions.xaxis.categories.indexOf(this.selectedDate);
+          const selectedTemperature = this.chartData.series[0].data[selectedDataIndex];
+  
+          this.chartData = {
+            series: [{
+              name: 'Temperature',
+              data: [selectedTemperature]
+            }]
+          };
+        }
+      },
+      disabledDates(date) {
+        return !this.availableDates.includes(date);
       }
     }
   };
