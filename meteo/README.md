@@ -1,4 +1,4 @@
-# meteodati
+# meteo
 
 ## Project setup
 ```

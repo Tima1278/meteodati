@@ -1,5 +1,5 @@
 {
-  "name": "meteodati",
+  "name": "meteo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,8 +11,7 @@
     "apexcharts": "^3.49.1",
     "core-js": "^3.8.3",
     "vue": "^3.2.13",
-    "vue-apexcharts": "^1.6.2",
-    "vue3-apexcharts": "^1.5.2",
+    "vue3-apexcharts": "^1.5.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
