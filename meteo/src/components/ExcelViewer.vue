@@ -1,5 +1,6 @@
 <template>
     <div>
+      <!-- Tabella -->
       <table v-if="excelData.length">
         <thead>
           <tr>
@@ -7,22 +8,31 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(row, rowIndex) in excelData" :key="rowIndex">
+          <tr v-for="(row, rowIndex) in excelData" :key="rowIndex" @mouseover="highlightRow(rowIndex)" @mouseleave="unhighlightRow(rowIndex)">
             <td v-for="(cell, colIndex) in row" :key="colIndex">{{ cell }}</td>
           </tr>
         </tbody>
       </table>
+      
+      <!-- Grafico -->
+      <ChartComponent :data="excelData" />
     </div>
   </template>
   
   <script>
   import * as XLSX from 'xlsx';
   import { ref, onMounted } from 'vue';
+  import ChartComponent from './components/ChartComponent.vue'; // Assicurati che il percorso sia corretto
+  
   
   export default {
+    components: {
+      ChartComponent,
+    },
     setup() {
       const excelData = ref([]);
       const headers = ref([]);
+      const highlightedRow = ref(null);
   
       const loadExcelFile = async () => {
         const response = await fetch('/datiufficiali.xlsx');
@@ -37,6 +47,14 @@
         excelData.value = jsonData.slice(1);
       };
   
+      const highlightRow = (index) => {
+        highlightedRow.value = index;
+      };
+  
+      const unhighlightRow = () => {
+        highlightedRow.value = null;
+      };
+  
       onMounted(() => {
         loadExcelFile();
       });
@@ -44,6 +62,9 @@
       return {
         excelData,
         headers,
+        highlightRow,
+        unhighlightRow,
+        highlightedRow,
       };
     },
   };
@@ -54,7 +75,7 @@
     width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
-    border: 1px solid #ddd;
+    border: 2px solid #ddd;
   }
   
   th, td {
@@ -74,6 +95,10 @@
   
   tbody tr:hover {
     background-color: #f2f2f2;
+  }
+  
+  tbody tr.highlighted {
+    background-color: #cce5ff;
   }
   </style>
   
