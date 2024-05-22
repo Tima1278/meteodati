@@ -3,6 +3,7 @@
     <Navbar @navigate="navigateToSection" />
     <div class="main-content">
       <ExcelViewer v-if="currentSection === 'Excel'" />
+      <PaginaGrafici v-else />
       <!-- Aggiungi altri componenti per le altre sezioni -->
     </div>
   </div>
@@ -11,12 +12,14 @@
 <script>
 import Navbar from './components/NavigationBar.vue';
 import ExcelViewer from './components/ExcelViewer.vue';
+import PaginaGrafici from './components/PaginaGrafici.vue';
 
 export default {
   name: 'App',
   components: {
     Navbar,
-    ExcelViewer
+    ExcelViewer,
+    PaginaGrafici
   },
   data() {
     return {

@@ -1,19 +1,23 @@
 <template>
     <div>
-      <Grafico1 />
-      <Grafico2 />
+      <GraficoView1 />
+      <GraficoView2 />
     </div>
   </template>
   
   <script>
-  import Grafico1 from './Grafico1.vue';
-  import Grafico2 from './Grafico2.vue';
+  import GraficoView1 from './GraficoView1.vue';
+  import GraficoView2 from './GraficoView2.vue';
   
   export default {
     components: {
-      Grafico1,
-      Grafico2
+      GraficoView1,
+      GraficoView2
     }
   };
   </script>
+  
+  <style>
+  /* Aggiungi eventuali stili qui */
+  </style>
   
