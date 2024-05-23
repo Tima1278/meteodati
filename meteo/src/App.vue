@@ -3,7 +3,8 @@
     <Navbar @navigate="navigateToSection" />
     <div class="main-content">
       <ExcelViewer v-if="currentSection === 'Excel'" />
-      <PaginaGrafici v-else />
+      <PaginaGrafici v-else-if="currentSection === 'Grafici'" />
+      <HottestCities v-else-if="currentSection === 'Città più calde'" />
       <!-- Aggiungi altri componenti per le altre sezioni -->
     </div>
   </div>
@@ -13,13 +14,15 @@
 import Navbar from './components/NavigationBar.vue';
 import ExcelViewer from './components/ExcelViewer.vue';
 import PaginaGrafici from './components/PaginaGrafici.vue';
+import HottestCities from './components/HottestCities.vue';
 
 export default {
   name: 'App',
   components: {
     Navbar,
     ExcelViewer,
-    PaginaGrafici
+    PaginaGrafici,
+    HottestCities // Aggiunto il componente HottestCities
   },
   data() {
     return {
