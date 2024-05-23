@@ -1,15 +1,15 @@
 <template>
-  <div>
-    <label for="date-select">Seleziona una regione:</label>
-    <select id="date-select" v-model="selectedDate" @change="updateChart">
-      <option v-for="date in availableDates" :key="date" :value="date">{{ date }}</option>
+  <div class="container">
+    <label for="city-select" class="label">Seleziona una città:</label>
+    <select id="city-select" v-model="selectedCity" @change="updateChart" class="select">
+      <option value="">Seleziona una città</option>
+      <option v-for="city in availableCities" :key="city" :value="city">{{ city }}</option>
     </select>
     <apexchart type="line" :options="chartOptions" :series="series" />
   </div>
 </template>
 
 <script>
-import { read, utils } from 'xlsx';
 import VueApexCharts from 'vue3-apexcharts';
 
 export default {
@@ -35,69 +35,77 @@ export default {
         }
       },
       series: [],
-      allData: [], // Dati completi dal file Excel
-      availableDates: [], // Date disponibili
-      selectedDate: null // Data selezionata dall'utente
+      allData: [], // Dati completi dal localStorage
+      availableCities: [], // Città disponibili
+      selectedCity: null // Città selezionata dall'utente
     };
   },
   mounted() {
-    this.loadExcelData();
+    this.loadLocalStorageData();
   },
   methods: {
-    async loadExcelData() {
+    loadLocalStorageData() {
       try {
-        const response = await fetch('/dati1.xlsx');
-        const data = await response.arrayBuffer();
-        const workbook = read(data);
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json = utils.sheet_to_json(sheet, { header: 1 });
+        // Leggi i dati dal localStorage
+        const localStorageData = localStorage.getItem('tableData1');
 
-        this.processData(json);
+        if (localStorageData) {
+          // Parsifica i dati JSON dal localStorage
+          this.allData = JSON.parse(localStorageData);
+
+          // Estrai i nomi delle città disponibili
+          this.availableCities = this.allData.map(entry => entry.citta);
+
+          // Carica i dati per la prima città disponibile
+          this.selectedCity = this.availableCities[0];
+
+          // Aggiorna il grafico per la città selezionata
+          this.updateChart();
+        } else {
+          console.error('Dati non trovati nel localStorage.');
+        }
       } catch (error) {
-        console.error('Errore nel caricamento del file Excel:', error);
+        console.error('Errore nel caricamento dei dati dal localStorage:', error);
       }
     },
-    processData(data) {
-      // Salva tutti i dati
-      this.allData = data;
-
-      // Estrai le date disponibili (supponiamo che le date siano nella prima colonna)
-      this.availableDates = [...new Set(data.slice(1).map(row => row[0]))];
-
-      // Imposta la prima data come data selezionata di default
-      this.selectedDate = this.availableDates[0];
-
-      // Carica i dati per la data selezionata
-      this.updateChart();
-    },
     updateChart() {
-  if (!this.selectedDate) return;
+      if (!this.selectedCity) return;
 
-  // Filtra i dati in base alla data selezionata
-  const filteredData = this.allData.filter(row => row[0] === this.selectedDate);
+      // Filtra i dati in base alla città selezionata
+      const selectedData = this.allData.find(entry => entry.citta === this.selectedCity);
 
-  if (filteredData.length > 0) {
-    // Trova le temperature sotto 50 gradi
-    const temperatures = filteredData[0].slice(1).filter(temp => temp < 50);
+      if (selectedData) {
+        // Trova le temperature sotto 50 gradi
+        const temperatures = selectedData.dati.map(data => data.valore).filter(temp => temp < 50);
 
-    // Estrai gli anni dalle date disponibili
-    const years = this.availableDates.map(date => new Date(date).getFullYear());
-    console.log("Years:", years);
+        // Estrai gli anni dalle date disponibili
+        const years = selectedData.dati.map(data => data.data);
 
-    // Aggiorna il grafico con gli anni come categorie sull'asse x e i dati delle temperature
-    this.chartOptions.xaxis.categories = years;
-    this.series = [{
-      name: 'Temperature',
-      data: temperatures
-    }];
-  }
-}
-
+        // Aggiorna il grafico con gli anni come categorie sull'asse x e i dati delle temperature
+        this.chartOptions.xaxis.categories = years;
+        this.series = [{
+          name: 'Temperature',
+          data: temperatures
+        }];
+      }
+    }
   }
 };
 </script>
 
-<style>
-/* Aggiungi eventuali stili qui */
+<style scoped>
+.container {
+  text-align: center;
+}
+
+.label {
+  font-size: 20px;
+}
+
+.select {
+  width: 300px;
+  height: 40px;
+  font-size: 16px;
+  margin-top: 10px;
+}
 </style>

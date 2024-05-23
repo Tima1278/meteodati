@@ -1,18 +1,42 @@
 <template>
-  <div class="table-container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th v-for="(header, index) in headers" :key="index">{{ header }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, rowIndex) in excelData" :key="rowIndex" @mouseover="highlightRow(rowIndex)" @mouseleave="unhighlightRow(rowIndex)">
-          <td v-for="(cell, colIndex) in row" :key="colIndex">{{ cell }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<!-- Prima tabella -->
+<div class="table-container">
+  <h2 class="table-title">Temperatura media</h2> <!-- Aggiunto il titolo con spazio e testo più grande -->
+  <table class="table" v-if="tableData1.length">
+    <thead>
+      <tr>
+        <th>Città</th>
+        <th v-for="date in dates1" :key="date">{{ date }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(row, rowIndex) in tableData1" :key="rowIndex" @mouseover="highlightRow(rowIndex)" @mouseleave="unhighlightRow(rowIndex)" :class="{ highlighted: highlightedRow === rowIndex }">
+        <td>{{ row.citta }}</td>
+        <td v-for="date in dates1" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Seconda tabella -->
+<div class="table-container">
+  <h2 class="table-title">Precipitazione totale</h2> <!-- Aggiunto il titolo con spazio e testo più grande -->
+  <table class="table" v-if="tableData2.length">
+    <thead>
+      <tr>
+        <th>Città</th>
+        <th v-for="date in dates2" :key="date">{{ date }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(row, rowIndex) in tableData2" :key="rowIndex" @mouseover="highlightRow2(rowIndex)" @mouseleave="unhighlightRow2(rowIndex)" :class="{ highlighted: highlightedRow2 === rowIndex }">
+        <td>{{ row.citta }}</td>
+        <td v-for="date in dates2" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 </template>
 
 <script>
@@ -21,43 +45,84 @@ import { ref, onMounted } from 'vue';
 
 export default {
   setup() {
-    const excelData = ref([]);
-    const headers = ref([]);
+    const tableData1 = ref([]);
+    const dates1 = ref([]);
     const highlightedRow = ref(null);
+
+    const tableData2 = ref([]);
+    const dates2 = ref([]);
+    const highlightedRow2 = ref(null);
 
     const loadExcelFile = async () => {
       try {
-        const response = await fetch('/datiufficiali.xlsx');
-        const arrayBuffer = await response.arrayBuffer();
-        const data = new Uint8Array(arrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        // Caricamento del primo file Excel
+        const response1 = await fetch('/dati1.xlsx');
+        const arrayBuffer1 = await response1.arrayBuffer();
+        const data1 = new Uint8Array(arrayBuffer1);
+        const workbook1 = XLSX.read(data1, { type: 'array' });
+        const worksheet1 = workbook1.Sheets[workbook1.SheetNames[0]];
 
-        // Estrai intestazioni e dati
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-        headers.value = jsonData[0];
-        excelData.value = jsonData.slice(1);
+        // Estrazione dei dati dal primo file Excel
+        const jsonData1 = XLSX.utils.sheet_to_json(worksheet1, { header: 1, defval: '' });
 
-        // Tratta le celle unite
-        const mergeCells = worksheet['!merges'] || [];
-        mergeCells.forEach(mergeCell => {
-          const { s, e } = mergeCell;
-          const startRowIndex = s.r;
-          const startColIndex = s.c;
-          const endRowIndex = e.r;
-          const endColIndex = e.c;
-
-          // Unisci celle nell'array excelData
-          for (let i = startRowIndex; i <= endRowIndex; i++) {
-            for (let j = startColIndex; j <= endColIndex; j++) {
-              if (i !== startRowIndex || j !== startColIndex) {
-                excelData.value[i][j] = excelData.value[startRowIndex][startColIndex];
-              }
-            }
+        // Estrazione delle date e costruzione del JSON per la prima tabella
+        dates1.value = jsonData1[1].slice(1);
+        const citiesData1 = jsonData1.slice(2).reduce((acc, row) => {
+          const cityName = row[0];
+          if (!acc[cityName]) {
+            acc[cityName] = { citta: cityName, dati: [] };
           }
-        });
+          dates1.value.forEach((date, index) => {
+            acc[cityName].dati.push({
+              data: date,
+              valore: row[index + 1]
+            });
+          });
+          return acc;
+        }, {});
+        tableData1.value = Object.values(citiesData1);
+
+        // Salvataggio dei dati nel localStorage
+        localStorage.setItem('tableData1', JSON.stringify(tableData1.value));
+
+        // Stampa il JSON nel console log
+        console.log("Dati JSON 1:", JSON.stringify(tableData1.value, null, 2));
+
+        // Caricamento del secondo file Excel
+        const response2 = await fetch('/dati2.xlsx');
+        const arrayBuffer2 = await response2.arrayBuffer();
+        const data2 = new Uint8Array(arrayBuffer2);
+        const workbook2 = XLSX.read(data2, { type: 'array' });
+        const worksheet2 = workbook2.Sheets[workbook2.SheetNames[0]];
+
+        // Estrazione dei dati dal secondo file Excel
+        const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1, defval: '' });
+
+        // Estrazione delle date e costruzione del JSON per la seconda tabella
+        dates2.value = jsonData2[1].slice(1);
+        const citiesData2 = jsonData2.slice(2).reduce((acc, row) => {
+          const cityName = row[0];
+          if (!acc[cityName]) {
+            acc[cityName] = { citta: cityName, dati: [] };
+          }
+          dates2.value.forEach((date, index) => {
+            acc[cityName].dati.push({
+              data: date,
+              valore: row[index + 1]
+            });
+          });
+          return acc;
+        }, {});
+        tableData2.value = Object.values(citiesData2);
+
+        // Salvataggio dei dati nel localStorage
+        localStorage.setItem('tableData2', JSON.stringify(tableData2.value));
+
+        // Stampa il JSON nel console log
+        console.log("Dati JSON 2:", JSON.stringify(tableData2.value, null, 2));
+
       } catch (error) {
-        console.error('Errore nel caricamento del file Excel:', error);
+        console.error('Errore nel caricamento dei file Excel:', error);
       }
     };
 
@@ -69,19 +134,33 @@ export default {
       highlightedRow.value = null;
     };
 
+    const highlightRow2 = (index) => {
+      highlightedRow2.value = index;
+    };
+
+    const unhighlightRow2 = () => {
+      highlightedRow2.value = null;
+    };
+
     onMounted(() => {
       loadExcelFile();
     });
 
     return {
-      excelData,
-      headers,
+      tableData1,
+      dates1,
       highlightRow,
       unhighlightRow,
       highlightedRow,
+      tableData2,
+      dates2,
+      highlightRow2,
+      unhighlightRow2,
+      highlightedRow2,
     };
   },
 };
+
 </script>
 
 <style scoped>
@@ -94,40 +173,44 @@ export default {
   width: 100%;
   border-collapse: collapse;
   font-family: Arial, sans-serif;
-  border: 1px solid #ddd; /* Aggiunto bordo */
+  border: 1px solid #ddd;
+}
+.table-container {
+  margin-bottom: 20px; /* Aggiunto spazio sotto la tabella */
+  text-align: center; /* Centra il testo */
+}
+
+.table-title {
+  margin-bottom: 10px; /* Aggiunto spazio sotto il titolo */
+  font-size: 30px; /* Aumentata ulteriormente la dimensione del testo */
 }
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px; /* Ridotto il padding */
+  padding: 10px;
   text-align: left;
 }
 
 th {
-  background-color: #f2f2f2;
-  color: #333;
+  background-color: #4CAF50; /* Verde */
+  color: white;
   font-weight: bold;
   text-transform: uppercase;
 }
 
 tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f2f2f2; /* Grigio chiaro */
 }
 
 tbody tr:hover {
-  background-color: #f2f2f2;
-}
-
-tbody tr:hover td {
-  color: #333;
+  background-color: #dddddd; /* Grigio più scuro al passaggio del mouse */
 }
 
 tbody tr.highlighted {
-  background-color: #cce5ff;
+  background-color: #87CEEB; /* Azzurro chiaro */
 }
 
 tbody tr.highlighted td {
-  color: #000;
+  color: #333; /* Testo più scuro per la riga evidenziata */
 }
-
 </style>
