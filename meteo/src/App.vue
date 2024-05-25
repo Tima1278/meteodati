@@ -1,37 +1,44 @@
 <template>
   <div id="app">
-    <Navbar @navigate="navigateToSection" />
+    <NavigationBar @navigate="navigateToSection" />
     <div class="main-content">
       <ExcelViewer v-if="currentSection === 'Excel'" />
       <PaginaGrafici v-else-if="currentSection === 'Grafici'" />
       <HottestCities v-else-if="currentSection === 'Città più calde'" />
-      <!-- Aggiungi altri componenti per le altre sezioni -->
+      <GestioneDatiCitta v-else-if="currentSection === 'Crea'" @add-data="addCityData" />
     </div>
   </div>
 </template>
 
 <script>
-import Navbar from './components/NavigationBar.vue';
+import NavigationBar from './components/NavigationBar.vue';
 import ExcelViewer from './components/ExcelViewer.vue';
 import PaginaGrafici from './components/PaginaGrafici.vue';
 import HottestCities from './components/HottestCities.vue';
+import GestioneDatiCitta from './components/GestioneDatiCitta.vue';
 
 export default {
   name: 'App',
   components: {
-    Navbar,
+    NavigationBar,
     ExcelViewer,
     PaginaGrafici,
-    HottestCities // Aggiunto il componente HottestCities
+    HottestCities,
+    GestioneDatiCitta // Assicurati di includere il componente GestioneDatiCitta
   },
   data() {
     return {
-      currentSection: 'Excel' // Imposta la sezione corrente su Excel
+      currentSection: 'Excel',
+      datiCitta: [] // Inizializza l'array per contenere i dati delle città
     };
   },
   methods: {
     navigateToSection(section) {
       this.currentSection = section;
+    },
+    addCityData(newData) {
+      // Aggiungi i nuovi dati alla struttura dati globale
+      this.datiCitta.push(newData);
     }
   }
 };

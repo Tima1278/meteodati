@@ -1,42 +1,53 @@
 <template>
-<!-- Prima tabella -->
-<div class="table-container">
-  <h2 class="table-title">Temperatura media</h2> <!-- Aggiunto il titolo con spazio e testo più grande -->
-  <table class="table" v-if="tableData1.length">
-    <thead>
-      <tr>
-        <th>Città</th>
-        <th v-for="date in dates1" :key="date">{{ date }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(row, rowIndex) in tableData1" :key="rowIndex" @mouseover="highlightRow(rowIndex)" @mouseleave="unhighlightRow(rowIndex)" :class="{ highlighted: highlightedRow === rowIndex }">
-        <td>{{ row.citta }}</td>
-        <td v-for="date in dates1" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <!-- Prima tabella -->
+  <div class="table-container">
+    <h2 class="table-title">Temperatura media</h2>
+    <table class="table" v-if="tableData1.length">
+      <thead>
+        <tr>
+          <th>Città</th>
+          <th v-for="date in dates1" :key="date">{{ date }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(row, rowIndex) in tableData1"
+          :key="rowIndex"
+          @mouseover="highlightRow(rowIndex)"
+          @mouseleave="unhighlightRow(rowIndex)"
+          :class="{ highlighted: highlightedRow === rowIndex }"
+        >
+          <td>{{ row.citta }}</td>
+          <td v-for="date in dates1" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-<!-- Seconda tabella -->
-<div class="table-container">
-  <h2 class="table-title">Precipitazione totale</h2> <!-- Aggiunto il titolo con spazio e testo più grande -->
-  <table class="table" v-if="tableData2.length">
-    <thead>
-      <tr>
-        <th>Città</th>
-        <th v-for="date in dates2" :key="date">{{ date }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(row, rowIndex) in tableData2" :key="rowIndex" @mouseover="highlightRow2(rowIndex)" @mouseleave="unhighlightRow2(rowIndex)" :class="{ highlighted: highlightedRow2 === rowIndex }">
-        <td>{{ row.citta }}</td>
-        <td v-for="date in dates2" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
+  <!-- Seconda tabella -->
+  <div class="table-container">
+    <h2 class="table-title">Precipitazione totale</h2>
+    <table class="table" v-if="tableData2.length">
+      <thead>
+        <tr>
+          <th>Città</th>
+          <th v-for="date in dates2" :key="date">{{ date }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(row, rowIndex) in tableData2"
+          :key="rowIndex"
+          @mouseover="highlightRow2(rowIndex)"
+          @mouseleave="unhighlightRow2(rowIndex)"
+          :class="{ highlighted: highlightedRow2 === rowIndex }"
+        >
+          <td>{{ row.citta }}</td>
+          <td v-for="date in dates2" :key="date">{{ row.dati.find(data => data.data === date)?.valore || '' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script>
@@ -80,13 +91,10 @@ export default {
           });
           return acc;
         }, {});
-        tableData1.value = Object.values(citiesData1);
+        tableData1.value = Object.values(citiesData1).sort((a, b) => a.citta.localeCompare(b.citta)); // Ordina le città per nome
 
         // Salvataggio dei dati nel localStorage
         localStorage.setItem('tableData1', JSON.stringify(tableData1.value));
-
-        // Stampa il JSON nel console log
-        console.log("Dati JSON 1:", JSON.stringify(tableData1.value, null, 2));
 
         // Caricamento del secondo file Excel
         const response2 = await fetch('/dati2.xlsx');
@@ -113,16 +121,26 @@ export default {
           });
           return acc;
         }, {});
-        tableData2.value = Object.values(citiesData2);
+        tableData2.value = Object.values(citiesData2).sort((a, b) => a.citta.localeCompare(b.citta)); // Ordina le città per nome
 
         // Salvataggio dei dati nel localStorage
         localStorage.setItem('tableData2', JSON.stringify(tableData2.value));
 
-        // Stampa il JSON nel console log
-        console.log("Dati JSON 2:", JSON.stringify(tableData2.value, null, 2));
-
       } catch (error) {
         console.error('Errore nel caricamento dei file Excel:', error);
+      }
+    };
+
+    const updateTablesFromLocalStorage = () => {
+      const storedTableData1 = localStorage.getItem('tableData1');
+      const storedTableData2 = localStorage.getItem('tableData2');
+
+      if (storedTableData1) {
+        tableData1.value = JSON.parse(storedTableData1);
+      }
+
+      if (storedTableData2) {
+        tableData2.value = JSON.parse(storedTableData2);
       }
     };
 
@@ -144,6 +162,7 @@ export default {
 
     onMounted(() => {
       loadExcelFile();
+      updateTablesFromLocalStorage();
     });
 
     return {
@@ -160,7 +179,6 @@ export default {
     };
   },
 };
-
 </script>
 
 <style scoped>
