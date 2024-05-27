@@ -52,7 +52,7 @@
 
 <script>
 import * as XLSX from 'xlsx';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 export default {
   setup() {
@@ -165,6 +165,33 @@ export default {
       updateTablesFromLocalStorage();
     });
 
+    const checkForUpdates = () => {
+      const storedTableData1 = localStorage.getItem('tableData1');
+      const storedTableData2 = localStorage.getItem('tableData2');
+
+      if (storedTableData1 && JSON.stringify(tableData1.value) !== storedTableData1) {
+        tableData1.value = JSON.parse(storedTableData1);
+      }
+
+      if (storedTableData2 && JSON.stringify(tableData2.value) !== storedTableData2) {
+        tableData2.value = JSON.parse(storedTableData2);
+      }
+    };
+
+    watch(
+      () => localStorage.getItem('tableData1'),
+      () => {
+        checkForUpdates();
+      }
+    );
+
+    watch(
+      () => localStorage.getItem('tableData2'),
+      () => {
+        checkForUpdates();
+      }
+    );
+
     return {
       tableData1,
       dates1,
@@ -232,3 +259,4 @@ tbody tr.highlighted td {
   color: #333; /* Testo più scuro per la riga evidenziata */
 }
 </style>
+

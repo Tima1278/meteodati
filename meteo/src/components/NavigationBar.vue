@@ -19,7 +19,7 @@
 export default {
   data() {
     return {
-      navItems: ["Excel", "Grafici", "Città più calde", "Crea", "Aggiorna"],
+      navItems: ["Excel", "Grafici", "Città più calde",],
       hoverIndex: null,
       selectedIndex: null
     };

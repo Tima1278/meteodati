@@ -15,11 +15,19 @@
         </tr>
       </tbody>
     </table>
+    <div id="chart">
+      <apexchart type="bar" :options="chartOptions" :series="series" />
+    </div>
   </div>
 </template>
 
 <script>
+import VueApexCharts from 'vue3-apexcharts';
+
 export default {
+  components: {
+    apexchart: VueApexCharts,
+  },
   data() {
     return {
       hottestCities: [],
@@ -27,21 +35,25 @@ export default {
         chart: {
           id: 'temperature-trend',
           width: '100%',
-          height: '400px',
+          height: '300px', // Ridotto l'altezza del grafico
           toolbar: {
             show: false
           }
         },
         xaxis: {
-          categories: []
-        },
-        title: {
-          text: 'Andamento delle temperature'
+          categories: [],
+          title: {
+            text: 'Città'
+          }
         },
         yaxis: {
           title: {
-            text: 'Temperatura (°C)'
+            text: 'Temperatura Media (°C)'
           }
+        },
+        title: {
+          text: 'Andamento delle temperature delle città più calde',
+          align: 'center'
         }
       },
       series: []
@@ -64,7 +76,7 @@ export default {
             const validTemperatures = temperatures.filter(temp => !isNaN(temp));
             if (validTemperatures.length > 0) {
               const averageTemperature = validTemperatures.reduce((acc, curr) => acc + curr, 0) / validTemperatures.length;
-              return { citta: entry.citta, temperaturaMedia: averageTemperature };
+              return { citta: entry.citta, temperaturaMedia: parseFloat(averageTemperature.toFixed(2)) }; // Approssima a 2 cifre decimali
             }
             return null;
           }).filter(city => city !== null);
@@ -88,7 +100,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .container {
@@ -121,5 +132,11 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background-color: #dddddd; /* Grigio più scuro al passaggio del mouse */
+}
+
+#chart {
+  margin-top: 20px;
+  max-width: 600px; /* Larghezza massima per il grafico */
+  margin: 0 auto;   /* Centra il grafico */
 }
 </style>

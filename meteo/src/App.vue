@@ -15,7 +15,6 @@ import NavigationBar from './components/NavigationBar.vue';
 import ExcelViewer from './components/ExcelViewer.vue';
 import PaginaGrafici from './components/PaginaGrafici.vue';
 import HottestCities from './components/HottestCities.vue';
-import GestioneDatiCitta from './components/GestioneDatiCitta.vue';
 
 export default {
   name: 'App',
@@ -24,7 +23,6 @@ export default {
     ExcelViewer,
     PaginaGrafici,
     HottestCities,
-    GestioneDatiCitta // Assicurati di includere il componente GestioneDatiCitta
   },
   data() {
     return {
